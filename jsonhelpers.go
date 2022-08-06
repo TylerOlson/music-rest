@@ -5,19 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strconv"
 )
 
-func initLibrary() {
-	var songs []Song
-	songs = append(songs, newSong("Mo Bamba", "Sheck Wes", "185"))
-
-	encodedSongs, err := json.Marshal(songs)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if err = ioutil.WriteFile("library.json", encodedSongs, 0644); err != nil {
+func clearLibrary() {
+	if err := ioutil.WriteFile("library.json", []byte("[]"), 0644); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -40,7 +31,7 @@ func getLibrary() []Song {
 func addSong(newSong Song) {
 	songs := getLibrary()
 
-	newSong.ID = strconv.Itoa(len(songs))
+	newSong.ID = len(songs)
 
 	songs = append(songs, newSong)
 
@@ -63,5 +54,5 @@ func getSong(id int) Song {
 		}
 	}
 
-	return Song{ID: "-1"}
+	return Song{ID: -1}
 }

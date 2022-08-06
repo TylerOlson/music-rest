@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	initLibrary()
+	clearLibrary()
+
+	addSong(NewSong("test", "dasd", "ad"))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)

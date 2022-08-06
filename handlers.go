@@ -11,7 +11,8 @@ import (
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	_ = r
 	if _, err := w.Write([]byte("<a href='/songs'>go to /songs</a>")); err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -19,7 +20,8 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(getLibrary()); err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -36,7 +38,8 @@ func singleSongHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 
 			if _, err := w.Write([]byte("not a number bub")); err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 			return
 		}
@@ -44,12 +47,13 @@ func singleSongHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		song := getSong(idInt)
 
-		if song.ID == "-1" {
+		if song.ID == -1 {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
 		if err := json.NewEncoder(w).Encode(getSong(idInt)); err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		return
@@ -63,7 +67,8 @@ func createSongHandler(w http.ResponseWriter, r *http.Request) {
 
 		err := json.NewDecoder(r.Body).Decode(&newSong)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
