@@ -8,34 +8,41 @@ import (
 )
 
 func clearLibrary() {
-	if err := ioutil.WriteFile("library.json", []byte("[]"), 0644); err != nil {
+	library := make(map[int]Song)
+
+	encodedLibrary, err := json.Marshal(library)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if err := ioutil.WriteFile("library.json", encodedLibrary, 0644); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func getLibrary() []Song {
-	encodedSongs, err := ioutil.ReadFile("library.json")
+func getLibrary() map[int]Song {
+	encodedLibrary, err := ioutil.ReadFile("library.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var songs []Song
-	err = json.Unmarshal(encodedSongs, &songs)
+	var library = make(map[int]Song)
+	err = json.Unmarshal(encodedLibrary, &library)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return songs
+	return library
 }
 
 func addSong(newSong Song) {
-	songs := getLibrary()
+	library := getLibrary()
 
-	newSong.ID = len(songs)
+	newSong.ID = len(library)
 
-	songs = append(songs, newSong)
+	library[newSong.ID] = newSong
 
-	song, err := json.Marshal(songs)
+	song, err := json.Marshal(library)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -46,13 +53,5 @@ func addSong(newSong Song) {
 }
 
 func getSong(id int) Song {
-	songs := getLibrary()
-
-	for i, s := range songs {
-		if i == id {
-			return s
-		}
-	}
-
-	return Song{ID: -1}
+	return getLibrary()[id]
 }
