@@ -11,14 +11,14 @@ import (
 )
 
 type song struct {
-	Id     string
-	Name   string
-	Artist string
-	Length string
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+	Length string `json:"length"`
 }
 
 func innitLibrary() {
-	songs := []song{{Id: "0", Name: "Mo Bamba", Artist: "Sheck Wes", Length: "185"}}
+	songs := []song{{ID: "0", Name: "Mo Bamba", Artist: "Sheck Wes", Length: "185"}}
 
 	song, err := json.Marshal(songs)
 	if err != nil {
@@ -44,6 +44,23 @@ func loadLibrary() []song {
 	return songs
 }
 
+func addSong(newSong song) {
+	songs := loadLibrary()
+
+	newSong.ID = strconv.Itoa(len(songs))
+
+	songs = append(songs, newSong)
+
+	song, err := json.Marshal(songs)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = ioutil.WriteFile("library.json", song, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getSong(id int) song {
 	songs := loadLibrary()
 
@@ -53,7 +70,7 @@ func getSong(id int) song {
 		}
 	}
 
-	return song{Id: "-1"}
+	return song{ID: "-1"}
 }
 
 func main() {
@@ -63,6 +80,7 @@ func main() {
 	mux.HandleFunc("/", rootHandler)
 	mux.HandleFunc("/songs", songsHandler)
 	mux.HandleFunc("/songs/", singleSongHandler)
+	mux.HandleFunc("/songs/create", createSongHandler)
 	fmt.Println("Starting server")
 
 	log.Fatal(http.ListenAndServe(":80", mux))
@@ -81,10 +99,29 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(loadLibrary()); err != nil {
 			log.Fatal(err)
 		}
+		return
+	}
+
+	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
+}
+
+func createSongHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var newSong song
+
+		err := json.NewDecoder(r.Body).Decode(&newSong)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		addSong(newSong)
+		w.WriteHeader(http.StatusCreated)
 
 		return
 	}
-	http.Error(w, "wrong method jack ash", 500)
+
+	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
 }
 
 func singleSongHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +130,7 @@ func singleSongHandler(w http.ResponseWriter, r *http.Request) {
 		if idInt, err := strconv.Atoi(id); err == nil {
 			w.Header().Set("Content-Type", "application/json")
 			song := getSong(idInt)
-			if song.Id == "-1" {
+			if song.ID == "-1" {
 				w.WriteHeader(http.StatusBadRequest)
 			}
 
@@ -109,5 +146,5 @@ func singleSongHandler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	http.Error(w, "wrong method jack ash", 500)
+	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
 }
