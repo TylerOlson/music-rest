@@ -53,5 +53,6 @@ func addSong(newSong Song) {
 }
 
 func getSong(id int) Song {
-	return getLibrary()[id]
+	song, _ := getLibrary()[id]
+	return song
 }

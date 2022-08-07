@@ -24,6 +24,20 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
+	} else if r.Method == http.MethodPost {
+		var newSong Song
+
+		err := json.NewDecoder(r.Body).Decode(&newSong)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		addSong(newSong) //need to implement error check here
+		w.WriteHeader(http.StatusCreated)
+
+		return
 	}
 
 	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
@@ -58,25 +72,5 @@ func singleSongHandler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
-}
-
-func createSongHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		var newSong Song
-
-		err := json.NewDecoder(r.Body).Decode(&newSong)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		addSong(newSong) //need to implement error check here
-		w.WriteHeader(http.StatusCreated)
-
-		return
-	}
-
 	http.Error(w, "wrong method jack ash", http.StatusMethodNotAllowed)
 }
